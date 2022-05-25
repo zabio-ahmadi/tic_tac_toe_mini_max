@@ -1,0 +1,5 @@
+*.o 
+tic_tac
+.vscode/
+diag.c
+algo.md
