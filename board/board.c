@@ -24,22 +24,16 @@ board board_alloc(int row, int col)
             brd->matrix[i][j] = 0;
         }
     }
-
     return brd;
 }
 
 void add_to_board(board brd, int row, int col, char data)
 {
-
-    // printf("%d %d\n", row, col);
     --row;
     --col;
 
     if ((row >= 0 && col >= 0) && (row < brd->row && col < brd->col))
         brd->matrix[row][col] = data;
-    // else
-    // printInColor("red", "Invalide index\n");
-    // printInColor("white", "\n");
 }
 
 void print_board(board brd)
@@ -117,7 +111,19 @@ void print_board(board brd)
                             if ((int)brd->matrix[i / 2][j / 2] > 65)
                             {
 
-                                printf(" %c ", brd->matrix[i / 2][j / 2]);
+                                if (brd->matrix[i / 2][j / 2] == 'O')
+                                {
+                                    printInColor("purple", "");
+                                    printf(" %c ", brd->matrix[i / 2][j / 2]);
+                                    printInColor("white", "");
+                                }
+                                else
+                                {
+                                    printInColor("cyan", "");
+                                    printf(" %c ", brd->matrix[i / 2][j / 2]);
+                                    printInColor("white", "");
+                                }
+                                // printf(" %c ", brd->matrix[i / 2][j / 2]);
                             }
                             else
                             {
@@ -149,6 +155,14 @@ void print_board(board brd)
         }
         printf("\n");
     }
+
+    printInColor("green", "");
+    for (int i = 1; i <= brd->col; i++)
+    {
+        printf("  %d ", i % 10);
+    }
+    printInColor("white", "");
+    printf("\n");
 }
 
 void board_destroy(board brd)

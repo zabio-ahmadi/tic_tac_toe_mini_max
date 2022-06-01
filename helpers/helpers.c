@@ -64,11 +64,10 @@ void request_cofig(int *size, int *mode)
     printf("-[2] for player vs computer normal mode \n");
 
     printf("-[3] for player vs computer smartAI (MIN_MAX)\n");
-    printf("-[4] for computer vs computer smartAI (MIN_MAX) \n");
     printf("---------------------------------------------------------------------------\n");
     scanf("%d", mode);
 
-    while (*mode <= 0 || *mode > 4)
+    while (*mode <= 0 || *mode > 3)
     {
         printInColor("red", "please choose the correct option ! \n");
         printInColor("white", " ");
@@ -76,12 +75,11 @@ void request_cofig(int *size, int *mode)
     }
 
     printInColor("green", "");
-    printf("MODE set to option No:%d\n", *mode);
+    printf("MODE set to No:[%d]\n", *mode);
     printInColor("white", "");
 }
 
 int generate_random(int upper, int lower)
 {
-
     return (rand() % (upper - lower + 1) + lower);
 }
