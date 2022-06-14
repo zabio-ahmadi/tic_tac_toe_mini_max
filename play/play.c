@@ -300,16 +300,16 @@ int max(int a, int b)
     return (a > b) ? a : b;
 }
 
-int mini_max(board brd, bool is_max, int depth, int *alpha, int *beta)
+int mini_max(board brd, bool is_max, int depth)
 {
 
-    // if (brd->row >= 4)
-    // {
-    //     if (depth >= 10)
-    //     {
-    //         return 0;
-    //     }
-    // }
+    if (brd->row >= 4)
+    {
+        if (depth >= 7)
+        {
+            return 0;
+        }
+    }
 
     int score = evaluate(brd);
 
@@ -339,26 +339,9 @@ int mini_max(board brd, bool is_max, int depth, int *alpha, int *beta)
                     add_to_board(brd, i + 1, j + 1, PC);
 
                     // calculate score of this move
-                    // best_score = max(best_score, mini_max(brd, false, depth + 1, alpha, beta));
-                    best_score = mini_max(brd, !is_max, depth + 1, alpha, beta);
+                    best_score = max(best_score, mini_max(brd, false, depth + 1));
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
-
-                    // alpha Pruning
-
-                    if (best_score >= *beta)
-                    {
-                        i = brd->row;
-                        j = brd->col;
-                    }
-                    *alpha = max(*alpha, best_score);
-                    // *alpha = max(*alpha, best_score);
-                    // if (*alpha >= *beta)
-                    // {
-                    //     // custom break;
-                    //     // i = brd->row;
-                    //     j = brd->col;
-                    // }
                 }
             }
         }
@@ -378,26 +361,11 @@ int mini_max(board brd, bool is_max, int depth, int *alpha, int *beta)
                     // make a move
                     add_to_board(brd, i + 1, j + 1, PLAYER);
 
-                    // best_score = min(best_score, mini_max(brd, true, depth + 1, alpha, beta));
-                    best_score = mini_max(brd, !is_max, depth + 1, alpha, beta);
+                    // calculate score of this move
+                    best_score = min(best_score, mini_max(brd, true, depth + 1));
+
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
-
-                    if (best_score <= *alpha)
-                    {
-                        i = brd->row;
-                        j = brd->col;
-                    }
-                    *beta = min(*beta, best_score);
-                    // beta cut-of Pruning
-
-                    // *beta = min(*beta, best_score);
-                    // if (*alpha >= *beta)
-                    // {
-                    //     // custom break;
-                    //     // i = brd->row;
-                    //     j = brd->col;
-                    // }
                 }
             }
         }
@@ -441,9 +409,6 @@ void best_move(board brd)
     bst_move.row = -1;
     bst_move.col = -1;
 
-    int alpha = _MIN_INF_;
-    int beta = _MAX_INF_;
-
     // for available case add and undo -> to see best score
     for (int i = 0; i < brd->row; i++)
     {
@@ -456,8 +421,8 @@ void best_move(board brd)
                 add_to_board(brd, i + 1, j + 1, PC);
 
                 // find max score
-                int score = mini_max(brd, false, 0, &alpha, &beta);
-                printf("row: %d col: %d score : %d , alpha %d, beta %d\n", i, j, score, alpha, beta);
+                int score = mini_max(brd, false, 0);
+                printf("row: %d col: %d score : %d\n", i, j, score);
                 // undo move
                 add_to_board(brd, i + 1, j + 1, (char)0);
                 // find the case with max probab
@@ -719,18 +684,20 @@ void player_vs_smart_ai_mini_max_player_start(board brd)
     }
 }
 
-int min_max_double(board brd, bool is_max, int depth, bool turn, int *alpha, int *beta)
+int min_max_double(board brd, bool is_max, int depth, bool turn)
 {
 
-    // if (brd->row >= 4)
-    // {
-    //     if (depth > 8)
-    //     {
-    //         return 0;
-    //     }
-    // }
+    if (brd->row >= 4)
+    {
+        if (depth > 8)
+        {
+            return 0;
+        }
+    }
 
     int score = evaluate(brd);
+
+    // if the board is full
 
     // if maximizer has won
     if (score == 1)
@@ -756,18 +723,9 @@ int min_max_double(board brd, bool is_max, int depth, bool turn, int *alpha, int
                     add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
 
                     // calculate score of this move
-                    // best_score = max(best_score, min_max_double(brd, false, depth + 1, turn, alpha, beta));
-                    best_score = mini_max(brd, true, depth + 1, alpha, beta);
+                    best_score = max(best_score, mini_max(brd, false, depth + 1));
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
-
-                    // alpha Pruning
-                    *alpha = max(*alpha, best_score);
-                    if (*alpha <= *beta)
-                    {
-                        i = brd->row;
-                        j = brd->col;
-                    }
                 }
             }
         }
@@ -788,18 +746,12 @@ int min_max_double(board brd, bool is_max, int depth, bool turn, int *alpha, int
                     add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
 
                     // calculate score of this move
-                    // best_score = min(best_score, min_max_double(brd, true, depth + 1, turn, alpha, beta));
-                    best_score = mini_max(brd, true, depth + 1, alpha, beta);
+                    best_score = min(best_score, mini_max(brd, true, depth + 1));
+
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
 
-                    // beta Pruning
-                    *beta = min(*beta, best_score);
-                    if (*beta <= *alpha)
-                    {
-                        i = brd->row;
-                        j = brd->col;
-                    }
+                    // min(score, best_score_score);
                 }
             }
         }
@@ -814,9 +766,6 @@ void best_move_o(board brd, bool turn)
     bst_move.row = -1;
     bst_move.col = -1;
 
-    int alpha = _MIN_INF_;
-    int beta = _MAX_INF_;
-
     // for available case add and undo -> to see best score
     for (int i = 0; i < brd->row; i++)
     {
@@ -829,7 +778,7 @@ void best_move_o(board brd, bool turn)
                 add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
 
                 // find max score
-                int score = min_max_double(brd, false, 0, turn, &alpha, &beta);
+                int score = min_max_double(brd, false, 0, turn);
                 printf("row: %d col: %d score : %d\n", i, j, score);
                 // undo move
                 add_to_board(brd, i + 1, j + 1, (char)0);
