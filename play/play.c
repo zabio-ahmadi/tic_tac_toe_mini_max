@@ -1,5 +1,6 @@
 #include "play.h"
 #include "../board/board.h"
+#include <unistd.h>
 
 int eval_row(board brd)
 {
@@ -25,11 +26,11 @@ int eval_row(board brd)
                 x_count = 0;
                 o_count = 0;
             }
-            if (x_count == WIN_FA)
+            if (x_count == brd->row)
             {
                 return +1;
             }
-            else if (o_count == WIN_FA)
+            else if (o_count == brd->row)
             {
                 return -1;
             }
@@ -61,10 +62,10 @@ int eval_col(board brd)
                 x_count = 0;
                 o_count = 0;
             }
-            if (x_count == WIN_FA)
+            if (x_count == brd->row)
                 return +1;
 
-            else if (o_count == WIN_FA)
+            else if (o_count == brd->row)
                 return -1;
         }
     }
@@ -94,10 +95,10 @@ int eval_forward_diagonal(board brd)
                 x_count = 0;
             }
 
-            if (x_count == WIN_FA)
+            if (x_count == brd->row)
                 return +1;
 
-            if (o_count == WIN_FA)
+            if (o_count == brd->row)
                 return -1;
         }
     }
@@ -124,10 +125,10 @@ int eval_forward_diagonal(board brd)
                 x_count = 0;
             }
 
-            if (x_count == WIN_FA)
+            if (x_count == brd->row)
                 return +1;
 
-            if (o_count == WIN_FA)
+            if (o_count == brd->row)
                 return -1;
 
             index += 1;
@@ -160,10 +161,10 @@ int eval_backward_diagonal(board brd)
                 x_count = 0;
             }
 
-            if (x_count == WIN_FA)
+            if (x_count == brd->row)
                 return +1;
 
-            if (o_count == WIN_FA)
+            if (o_count == brd->row)
                 return -1;
         }
     }
@@ -190,10 +191,10 @@ int eval_backward_diagonal(board brd)
                 x_count = 0;
             }
 
-            if (x_count == WIN_FA)
+            if (x_count == brd->row)
                 return +1;
 
-            if (o_count == WIN_FA)
+            if (o_count == brd->row)
                 return -1;
         }
     }
@@ -287,26 +288,40 @@ int remaining_case(board brd)
     return count;
 }
 
+int min(int a, int b)
+{
+    return (a < b) ? a : b;
+}
+
+int max(int a, int b)
+{
+    return (a > b) ? a : b;
+}
 int min_max(board brd, bool is_max, int depth)
 {
 
-    // printf("depth:  %d\n", depth);
-    if (depth >= 7)
+    if (brd->row >= 4)
     {
-        return 0;
+        if (depth > 8)
+        {
+            return 0;
+        }
     }
 
     int score = evaluate(brd);
 
-    if (score == 1)
-    {
-        return score * (remaining_case(brd) + 1);
-    }
-    else if (score == -1)
-    {
-        return score * (remaining_case(brd) + 1);
-    }
+    // if the board is full
 
+    // if maximizer has won
+    if (score == 1)
+        return score * (remaining_case(brd) + 1);
+
+    // if minimizer has won
+    if (score == -1)
+        return score * (remaining_case(brd) + 1);
+
+    if (board_is_full(brd))
+        return 0;
     if (is_max)
     {
         int best_score = _MIN_INF_;
@@ -317,17 +332,13 @@ int min_max(board brd, bool is_max, int depth)
                 // the case is available
                 if (case_is_available(brd->matrix[i][j]))
                 {
-                    // add to board
+                    // make a move
                     add_to_board(brd, i + 1, j + 1, PC);
 
-                    // calculate score of this case
-                    int scores = min_max(brd, false, depth + 1);
-
+                    // calculate score of this move
+                    best_score = max(best_score, min_max(brd, false, depth + 1));
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
-
-                    // max(score, best_score);
-                    best_score = (scores > best_score) ? scores : best_score;
                 }
             }
         }
@@ -344,16 +355,16 @@ int min_max(board brd, bool is_max, int depth)
                 // the case is available
                 if (case_is_available(brd->matrix[i][j]))
                 {
-                    // add to board
+                    // make a move
                     add_to_board(brd, i + 1, j + 1, PLAYER);
-                    // calculate score of this case
-                    int scores = min_max(brd, true, depth + 1);
+
+                    // calculate score of this move
+                    best_score = min(best_score, min_max(brd, true, depth + 1));
 
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
 
-                    // min(score, best_score);
-                    best_score = (scores < best_score) ? scores : best_score;
+                    // min(score, best_score_score);
                 }
             }
         }
@@ -363,125 +374,11 @@ int min_max(board brd, bool is_max, int depth)
 
 void case_to_coordinates(board brd, int cas, int *i, int *j)
 {
-
-    if (brd->row == 3)
-    {
-        switch (cas)
-        {
-        case 1:
-            *i = 1;
-            *j = 1;
-            break;
-        case 2:
-            *i = 1;
-            *j = 2;
-            break;
-        case 3:
-            *i = 1;
-            *j = 3;
-            break;
-        case 4:
-            *i = 2;
-            *j = 1;
-            break;
-
-        case 5:
-            *i = 2;
-            *j = 2;
-            break;
-        case 6:
-            *i = 2;
-            *j = 3;
-            break;
-        case 7:
-            *i = 3;
-            *j = 1;
-            break;
-        case 8:
-            *i = 3;
-            *j = 2;
-            break;
-        case 9:
-            *i = 3;
-            *j = 3;
-            break;
-        }
-    }
-
-    if (brd->row == 4)
-    {
-        switch (cas)
-        {
-        case 1:
-            *i = 1;
-            *j = 1;
-            break;
-        case 2:
-            *i = 1;
-            *j = 2;
-            break;
-        case 3:
-            *i = 1;
-            *j = 3;
-            break;
-        case 4:
-            *i = 1;
-            *j = 4;
-            break;
-
-        case 5:
-            *i = 2;
-            *j = 1;
-            break;
-        case 6:
-            *i = 2;
-            *j = 2;
-            break;
-        case 7:
-            *i = 2;
-            *j = 3;
-            break;
-        case 8:
-            *i = 2;
-            *j = 4;
-            break;
-        case 9:
-            *i = 3;
-            *j = 1;
-            break;
-
-        case 10:
-            *i = 3;
-            *j = 2;
-            break;
-        case 11:
-            *i = 3;
-            *j = 3;
-            break;
-        case 12:
-            *i = 3;
-            *j = 4;
-            break;
-
-        case 13:
-            *i = 4;
-            *j = 1;
-            break;
-
-        case 14:
-            *i = 4;
-            *j = 2;
-            break;
-        case 15:
-            *i = 4;
-            *j = 3;
-            break;
-        case 16:
-            *i = 4;
-            *j = 4;
-            break;
-        }
-    }
+    // 3 => row : 1 : col : 3
+    *i = (int)(cas - 1) / brd->row;
+    *j = (cas - 1) % brd->col;
+    *i = *i + 1;
+    *j = *j + 1;
 }
 
 void make_move(board brd, bool turn, int *i, int *j)
@@ -503,52 +400,43 @@ void make_move(board brd, bool turn, int *i, int *j)
     *i = tmp_i;
     *j = tmp_j;
 }
-void best_move(board brd, bool first_move)
+
+void best_move(board brd)
 {
-    int best_score = 0;
-    move best_move;
-    /*
-        in first move every case has the same probability :
-        it is not good to start every time from index [0][0]
-        we should randomize this in the range of [1 to 9]
-    */
-    if (first_move)
+    int best_score = _MIN_INF_;
+    move bst_move;
+    bst_move.row = -1;
+    bst_move.col = -1;
+
+    // for available case add and undo -> to see best score
+    for (int i = 0; i < brd->row; i++)
     {
-        srand(time(0));
-        make_move(brd, true, &best_move.col, &best_move.row);
-    }
-    else
-    {
-        // for available case add and undo -> to see best score
-        for (int i = 0; i < brd->row; i++)
+        for (int j = 0; j < brd->col; j++)
         {
-            for (int j = 0; j < brd->col; j++)
+            // the case is available
+            if (case_is_available(brd->matrix[i][j]))
             {
-                // the case is available
-                if (case_is_available(brd->matrix[i][j]))
+                // add move to evalaute
+                add_to_board(brd, i + 1, j + 1, PC);
+
+                // find max score
+                int score = min_max(brd, false, 0);
+                printf("row: %d col: %d score : %d\n", i, j, score);
+                // undo move
+                add_to_board(brd, i + 1, j + 1, (char)0);
+                // find the case with max probab
+                if (score > best_score)
                 {
-                    // add move to evalaute
-                    add_to_board(brd, i + 1, j + 1, PC);
-
-                    // find max score
-                    int score = min_max(brd, false, 0);
-                    // printf("col: %d row: %d score : %d\n", i, j, score);
-                    // undo move
-                    add_to_board(brd, i + 1, j + 1, (char)0);
-                    // find the case with max probab
-                    if (score > best_score)
-                    {
-
-                        best_move.row = i;
-                        best_move.col = j;
-                        best_score = score;
-                    }
+                    bst_move.row = i;
+                    bst_move.col = j;
+                    best_score = score;
                 }
             }
         }
-        add_to_board(brd, best_move.row + 1, best_move.col + 1, PC);
     }
-    printf("\nmove : %d move : %d\n", best_move.row, best_move.col);
+    add_to_board(brd, bst_move.row + 1, bst_move.col + 1, PC);
+
+    printf("\nmove : %d move : %d\n", bst_move.row, bst_move.col);
 }
 
 void two_player(board brd)
@@ -681,11 +569,10 @@ void player_random_AI(board brd)
     }
 }
 
-void player_vs_smart_ai_mini_max(board brd)
+void player_vs_smart_ai_mini_max_machine_start(board brd)
 {
     bool win = false;
     bool turn = true; // computer starts
-    bool first_move = true;
 
     while (!win)
     {
@@ -694,9 +581,7 @@ void player_vs_smart_ai_mini_max(board brd)
         {
             if (turn)
             {
-                best_move(brd, first_move);
-                first_move = false;
-
+                best_move(brd);
                 print_board(brd);
 
                 if (evaluate(brd) == 1)
@@ -735,6 +620,201 @@ void player_vs_smart_ai_mini_max(board brd)
             }
         }
         // if not full & no win => draw
+        else
+        {
+            printf("the game is draw !!! \n");
+            return;
+        }
+    }
+}
+
+void player_vs_smart_ai_mini_max_player_start(board brd)
+{
+
+    bool win = false;
+
+    while (!win)
+    {
+
+        bool is_full = board_is_full(brd);
+        if (!is_full)
+        {
+            int row, col;
+            printf("please choose the case by [row][col] :\n");
+            scanf("%d %d", &row, &col);
+
+            if (case_is_available(brd->matrix[row - 1][col - 1]))
+            {
+                add_to_board(brd, row, col, PLAYER);
+                print_board(brd);
+
+                if (evaluate(brd) == -1)
+                {
+                    printf("you win the game !!!\n");
+                    return;
+                }
+                // continue;
+            }
+            else
+            {
+                printInColor("red", "choose another box this box is taking\n");
+                printInColor("white", " ");
+                continue;
+            }
+
+            if (!board_is_full(brd))
+            {
+
+                best_move(brd);
+                print_board(brd);
+
+                if (evaluate(brd) == 1)
+                {
+                    printf("computer win the game !!!");
+                    return;
+                }
+            }
+        }
+        else
+        {
+            printf("the game is draw !!! \n");
+            return;
+        }
+    }
+}
+
+int min_max_double(board brd, bool is_max, int depth, bool turn)
+{
+
+    if (brd->row >= 4)
+    {
+        if (depth > 8)
+        {
+            return 0;
+        }
+    }
+
+    int score = evaluate(brd);
+
+    // if the board is full
+
+    // if maximizer has won
+    if (score == 1)
+        return score * (remaining_case(brd) + 1);
+
+    // if minimizer has won
+    if (score == -1)
+        return score * (remaining_case(brd) + 1);
+
+    if (board_is_full(brd))
+        return 0;
+    if (is_max)
+    {
+        int best_score = _MIN_INF_;
+        for (int i = 0; i < brd->row; i++)
+        {
+            for (int j = 0; j < brd->col; j++)
+            {
+                // the case is available
+                if (case_is_available(brd->matrix[i][j]))
+                {
+                    // make a move
+                    add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
+
+                    // calculate score of this move
+                    best_score = max(best_score, min_max(brd, false, depth + 1));
+                    // undo move
+                    add_to_board(brd, i + 1, j + 1, (char)0);
+                }
+            }
+        }
+        return best_score;
+    }
+    else
+    {
+        int best_score = _MAX_INF_;
+
+        for (int i = 0; i < brd->row; i++)
+        {
+            for (int j = 0; j < brd->col; j++)
+            {
+                // the case is available
+                if (case_is_available(brd->matrix[i][j]))
+                {
+                    // make a move
+                    add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
+
+                    // calculate score of this move
+                    best_score = min(best_score, min_max(brd, true, depth + 1));
+
+                    // undo move
+                    add_to_board(brd, i + 1, j + 1, (char)0);
+
+                    // min(score, best_score_score);
+                }
+            }
+        }
+        return best_score;
+    }
+}
+
+void best_move_o(board brd, bool turn)
+{
+    int best_score = _MIN_INF_;
+    move bst_move;
+    bst_move.row = -1;
+    bst_move.col = -1;
+
+    // for available case add and undo -> to see best score
+    for (int i = 0; i < brd->row; i++)
+    {
+        for (int j = 0; j < brd->col; j++)
+        {
+            // the case is available
+            if (case_is_available(brd->matrix[i][j]))
+            {
+                // add move to evalaute
+                add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
+
+                // find max score
+                int score = min_max_double(brd, false, 0, turn);
+                printf("row: %d col: %d score : %d\n", i, j, score);
+                // undo move
+                add_to_board(brd, i + 1, j + 1, (char)0);
+                // find the case with max probab
+                if (score > best_score)
+                {
+                    bst_move.row = i;
+                    bst_move.col = j;
+                    best_score = score;
+                }
+            }
+        }
+    }
+    add_to_board(brd, bst_move.row + 1, bst_move.col + 1, (turn) ? PC : PLAYER);
+
+    printf("\nmove : %d move : %d\n", bst_move.row, bst_move.col);
+}
+void ai_vs_ai(board brd)
+{
+    bool win = false;
+    bool turn = true;
+    while (!win)
+    {
+
+        bool is_full = board_is_full(brd);
+        if (!is_full)
+        {
+            best_move_o(brd, !turn);
+            print_board(brd);
+            sleep(1);
+            turn = !turn;
+            if (evaluate(brd) == 1)
+            {
+                printf("pc 1 win the game !!!");
+                return;
+            }
+        }
         else
         {
             printf("the game is draw !!! \n");

@@ -4,7 +4,7 @@
 #include "../helpers/helpers.h"
 #ifndef _PLAY_
 #define _PLAY_
-#define WIN_FA 3
+#define WIN_FA 4
 #define RND_UPPER 3
 #define RND_LOWER 1
 
@@ -29,12 +29,17 @@ int evaluate(board brd);
 int check_win(board brd);
 
 bool case_is_available(char chr);
+void case_to_coordinates(board brd, int cas, int *i, int *j);
 bool board_is_full(board brd);
 int min_max(board brd, bool is_max, int depth);
-void best_move(board brd, bool first_move);
+void best_move(board brd);
 
 void two_player(board brd);
 void player_random_AI(board brd);
-void player_vs_smart_ai_mini_max(board brd);
+void player_vs_smart_ai_mini_max_machine_start(board brd);
+
+void player_vs_smart_ai_mini_max_player_start(board brd);
+
+void ai_vs_ai(board brd);
 
 #endif
