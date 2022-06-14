@@ -31,7 +31,7 @@ int check_win(board brd);
 bool case_is_available(char chr);
 void case_to_coordinates(board brd, int cas, int *i, int *j);
 bool board_is_full(board brd);
-int min_max(board brd, bool is_max, int depth);
+int mini_max(board brd, bool is_max, int depth);
 void best_move(board brd);
 
 void two_player(board brd);

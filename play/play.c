@@ -263,6 +263,7 @@ bool board_is_full(board brd)
     {
         for (int j = 0; j < brd->col; j++)
         {
+            // if at least one case is empty then the board is not full
             if (case_is_available(brd->matrix[i][j]))
             {
                 return false;
@@ -279,6 +280,7 @@ int remaining_case(board brd)
     {
         for (int j = 0; j < brd->col; j++)
         {
+            // count each empty case in the board
             if (case_is_available(brd->matrix[i][j]))
             {
                 count++;
@@ -297,12 +299,13 @@ int max(int a, int b)
 {
     return (a > b) ? a : b;
 }
-int min_max(board brd, bool is_max, int depth)
+
+int mini_max(board brd, bool is_max, int depth)
 {
 
     if (brd->row >= 4)
     {
-        if (depth > 8)
+        if (depth >= 7)
         {
             return 0;
         }
@@ -336,7 +339,7 @@ int min_max(board brd, bool is_max, int depth)
                     add_to_board(brd, i + 1, j + 1, PC);
 
                     // calculate score of this move
-                    best_score = max(best_score, min_max(brd, false, depth + 1));
+                    best_score = max(best_score, mini_max(brd, false, depth + 1));
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
                 }
@@ -359,12 +362,10 @@ int min_max(board brd, bool is_max, int depth)
                     add_to_board(brd, i + 1, j + 1, PLAYER);
 
                     // calculate score of this move
-                    best_score = min(best_score, min_max(brd, true, depth + 1));
+                    best_score = min(best_score, mini_max(brd, true, depth + 1));
 
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
-
-                    // min(score, best_score_score);
                 }
             }
         }
@@ -420,7 +421,7 @@ void best_move(board brd)
                 add_to_board(brd, i + 1, j + 1, PC);
 
                 // find max score
-                int score = min_max(brd, false, 0);
+                int score = mini_max(brd, false, 0);
                 printf("row: %d col: %d score : %d\n", i, j, score);
                 // undo move
                 add_to_board(brd, i + 1, j + 1, (char)0);
@@ -722,7 +723,7 @@ int min_max_double(board brd, bool is_max, int depth, bool turn)
                     add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
 
                     // calculate score of this move
-                    best_score = max(best_score, min_max(brd, false, depth + 1));
+                    best_score = max(best_score, mini_max(brd, false, depth + 1));
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
                 }
@@ -745,7 +746,7 @@ int min_max_double(board brd, bool is_max, int depth, bool turn)
                     add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
 
                     // calculate score of this move
-                    best_score = min(best_score, min_max(brd, true, depth + 1));
+                    best_score = min(best_score, mini_max(brd, true, depth + 1));
 
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
