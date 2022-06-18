@@ -11,7 +11,7 @@ int main()
 {
 
     int size, mode;
-    request_cofig(&size, &mode);
+    request_cofig(&size, &mode); // display menu & request bord size
 
     board brd = board_alloc(size, size);
     switch (mode)
@@ -23,14 +23,10 @@ int main()
         player_random_AI(brd);
         break;
     case 3:
-        player_vs_smart_ai_mini_max_machine_start(brd);
+        player_vs_smart_ai_mini_max(brd, false);
         break;
     case 4:
-        player_vs_smart_ai_mini_max_player_start(brd);
-        break;
-
-    case 5:
-        ai_vs_ai(brd);
+        player_vs_smart_ai_mini_max(brd, true);
         break;
 
     default:

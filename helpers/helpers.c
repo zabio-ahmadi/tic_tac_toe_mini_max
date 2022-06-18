@@ -62,12 +62,12 @@ void request_cofig(int *size, int *mode)
     printInColor("white", "please choose game mode:\n");
     printf("-[1] for player vs player normal mode\n");
     printf("-[2] for player vs computer normal mode \n");
-    printf("-[3] for player vs computer smartAI Machine start the game (MIN_MAX)\n");
-    printf("-[4] for player vs computer smartAI Player start the game (MIN_MAX)\n");
+    printf("-[3] for player vs computer smartAI Minimax (normal)\n");
+    printf("-[4] for player vs computer smartAI  Minimax (Alpha beta)\n");
     printf("---------------------------------------------------------------------------\n");
     scanf("%d", mode);
 
-    while (*mode <= 0 || *mode > 5)
+    while (*mode <= 0 || *mode > 4)
     {
         printInColor("red", "please choose the correct option ! \n");
         printInColor("white", " ");

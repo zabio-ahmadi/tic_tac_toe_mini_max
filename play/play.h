@@ -31,15 +31,14 @@ int check_win(board brd);
 bool case_is_available(char chr);
 void case_to_coordinates(board brd, int cas, int *i, int *j);
 bool board_is_full(board brd);
+
 int mini_max(board brd, bool is_max, int depth);
-void best_move(board brd);
+int mini_max_alpha(board brd, bool is_max, int depth, int *alpha, int *beta);
+void best_move(board brd, bool machine_starts, bool prun);
 
 void two_player(board brd);
 void player_random_AI(board brd);
-void player_vs_smart_ai_mini_max_machine_start(board brd);
 
-void player_vs_smart_ai_mini_max_player_start(board brd);
-
-void ai_vs_ai(board brd);
+void player_vs_smart_ai_mini_max(board brd, bool prun);
 
 #endif

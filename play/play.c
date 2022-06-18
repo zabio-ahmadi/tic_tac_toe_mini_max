@@ -292,28 +292,18 @@ int remaining_case(board brd)
 
 int min(int a, int b)
 {
-    return (a < b) ? a : b;
+    return (a <= b) ? a : b;
 }
 
 int max(int a, int b)
 {
-    return (a > b) ? a : b;
+    return (a >= b) ? a : b;
 }
 
 int mini_max(board brd, bool is_max, int depth)
 {
 
-    if (brd->row >= 4)
-    {
-        if (depth >= 7)
-        {
-            return 0;
-        }
-    }
-
     int score = evaluate(brd);
-
-    // if the board is full
 
     // if maximizer has won
     if (score == 1)
@@ -324,7 +314,9 @@ int mini_max(board brd, bool is_max, int depth)
         return score * (remaining_case(brd) + 1);
 
     if (board_is_full(brd))
+    {
         return 0;
+    }
     if (is_max)
     {
         int best_score = _MIN_INF_;
@@ -361,11 +353,85 @@ int mini_max(board brd, bool is_max, int depth)
                     // make a move
                     add_to_board(brd, i + 1, j + 1, PLAYER);
 
-                    // calculate score of this move
                     best_score = min(best_score, mini_max(brd, true, depth + 1));
-
                     // undo move
                     add_to_board(brd, i + 1, j + 1, (char)0);
+                }
+            }
+        }
+        return best_score;
+    }
+}
+int mini_max_alpha(board brd, bool is_max, int depth, int *alpha, int *beta)
+{
+
+    int score = evaluate(brd);
+
+    // if maximizer has won
+    if (score == 1)
+        return score * (remaining_case(brd) + 1);
+
+    // if minimizer has won
+    if (score == -1)
+        return score * (remaining_case(brd) + 1);
+
+    if (board_is_full(brd) || depth == brd->row)
+    {
+        return 0;
+    }
+    if (is_max)
+    {
+        int best_score = _MIN_INF_;
+        for (int i = 0; i < brd->row; i++)
+        {
+            for (int j = 0; j < brd->col; j++)
+            {
+                // the case is available
+                if (case_is_available(brd->matrix[i][j]))
+                {
+                    // make a move
+                    add_to_board(brd, i + 1, j + 1, PC);
+
+                    // calculate score of this move
+                    best_score = max(best_score, mini_max_alpha(brd, false, depth + 1, alpha, beta));
+                    // int score = mini_max(brd, false, depth + 1, alpha, beta);
+                    // undo move
+                    add_to_board(brd, i + 1, j + 1, (char)0);
+                    // best_score = max(score, best_score);
+
+                    *alpha = max(*alpha, best_score);
+                    if (best_score >= *beta)
+                    {
+                        return best_score;
+                    }
+                }
+            }
+        }
+        return best_score;
+    }
+    else
+    {
+        int best_score = _MAX_INF_;
+
+        for (int i = 0; i < brd->row; i++)
+        {
+            for (int j = 0; j < brd->col; j++)
+            {
+                // the case is available
+                if (case_is_available(brd->matrix[i][j]))
+                {
+                    // make a move
+                    add_to_board(brd, i + 1, j + 1, PLAYER);
+
+                    best_score = min(best_score, mini_max_alpha(brd, true, depth + 1, alpha, beta));
+                    // undo move
+                    add_to_board(brd, i + 1, j + 1, (char)0);
+
+                    *beta = min(*beta, best_score);
+                    if (best_score <= *alpha)
+                    {
+                        return best_score;
+                    }
                 }
             }
         }
@@ -402,12 +468,15 @@ void make_move(board brd, bool turn, int *i, int *j)
     *j = tmp_j;
 }
 
-void best_move(board brd)
+void best_move(board brd, bool machine_starts, bool prun)
 {
     int best_score = _MIN_INF_;
     move bst_move;
     bst_move.row = -1;
     bst_move.col = -1;
+
+    int alpha = _MIN_INF_;
+    int beta = _MAX_INF_;
 
     // for available case add and undo -> to see best score
     for (int i = 0; i < brd->row; i++)
@@ -421,8 +490,8 @@ void best_move(board brd)
                 add_to_board(brd, i + 1, j + 1, PC);
 
                 // find max score
-                int score = mini_max(brd, false, 0);
-                printf("row: %d col: %d score : %d\n", i, j, score);
+                int score = (prun) ? mini_max_alpha(brd, machine_starts, 0, &alpha, &beta) : mini_max(brd, !machine_starts, 0);
+
                 // undo move
                 add_to_board(brd, i + 1, j + 1, (char)0);
                 // find the case with max probab
@@ -569,11 +638,26 @@ void player_random_AI(board brd)
         }
     }
 }
-
-void player_vs_smart_ai_mini_max_machine_start(board brd)
+void player_vs_smart_ai_mini_max(board brd, bool prun)
 {
     bool win = false;
     bool turn = true; // computer starts
+
+    printInColor("blue", "who starts the game :\n");
+    printInColor("white", "[1] : you\n[2]: Machine ? \n");
+    int t;
+    bool machin_start = false;
+    scanf("%d", &t);
+
+    if (t == 1)
+    {
+        turn = false;
+    }
+    else
+    {
+        turn = true;
+        machin_start = true;
+    }
 
     while (!win)
     {
@@ -582,7 +666,7 @@ void player_vs_smart_ai_mini_max_machine_start(board brd)
         {
             if (turn)
             {
-                best_move(brd);
+                best_move(brd, machin_start, prun);
                 print_board(brd);
 
                 if (evaluate(brd) == 1)
@@ -621,201 +705,6 @@ void player_vs_smart_ai_mini_max_machine_start(board brd)
             }
         }
         // if not full & no win => draw
-        else
-        {
-            printf("the game is draw !!! \n");
-            return;
-        }
-    }
-}
-
-void player_vs_smart_ai_mini_max_player_start(board brd)
-{
-
-    bool win = false;
-
-    while (!win)
-    {
-
-        bool is_full = board_is_full(brd);
-        if (!is_full)
-        {
-            int row, col;
-            printf("please choose the case by [row][col] :\n");
-            scanf("%d %d", &row, &col);
-
-            if (case_is_available(brd->matrix[row - 1][col - 1]))
-            {
-                add_to_board(brd, row, col, PLAYER);
-                print_board(brd);
-
-                if (evaluate(brd) == -1)
-                {
-                    printf("you win the game !!!\n");
-                    return;
-                }
-                // continue;
-            }
-            else
-            {
-                printInColor("red", "choose another box this box is taking\n");
-                printInColor("white", " ");
-                continue;
-            }
-
-            if (!board_is_full(brd))
-            {
-
-                best_move(brd);
-                print_board(brd);
-
-                if (evaluate(brd) == 1)
-                {
-                    printf("computer win the game !!!");
-                    return;
-                }
-            }
-        }
-        else
-        {
-            printf("the game is draw !!! \n");
-            return;
-        }
-    }
-}
-
-int min_max_double(board brd, bool is_max, int depth, bool turn)
-{
-
-    if (brd->row >= 4)
-    {
-        if (depth > 8)
-        {
-            return 0;
-        }
-    }
-
-    int score = evaluate(brd);
-
-    // if the board is full
-
-    // if maximizer has won
-    if (score == 1)
-        return score * (remaining_case(brd) + 1);
-
-    // if minimizer has won
-    if (score == -1)
-        return score * (remaining_case(brd) + 1);
-
-    if (board_is_full(brd))
-        return 0;
-    if (is_max)
-    {
-        int best_score = _MIN_INF_;
-        for (int i = 0; i < brd->row; i++)
-        {
-            for (int j = 0; j < brd->col; j++)
-            {
-                // the case is available
-                if (case_is_available(brd->matrix[i][j]))
-                {
-                    // make a move
-                    add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
-
-                    // calculate score of this move
-                    best_score = max(best_score, mini_max(brd, false, depth + 1));
-                    // undo move
-                    add_to_board(brd, i + 1, j + 1, (char)0);
-                }
-            }
-        }
-        return best_score;
-    }
-    else
-    {
-        int best_score = _MAX_INF_;
-
-        for (int i = 0; i < brd->row; i++)
-        {
-            for (int j = 0; j < brd->col; j++)
-            {
-                // the case is available
-                if (case_is_available(brd->matrix[i][j]))
-                {
-                    // make a move
-                    add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
-
-                    // calculate score of this move
-                    best_score = min(best_score, mini_max(brd, true, depth + 1));
-
-                    // undo move
-                    add_to_board(brd, i + 1, j + 1, (char)0);
-
-                    // min(score, best_score_score);
-                }
-            }
-        }
-        return best_score;
-    }
-}
-
-void best_move_o(board brd, bool turn)
-{
-    int best_score = _MIN_INF_;
-    move bst_move;
-    bst_move.row = -1;
-    bst_move.col = -1;
-
-    // for available case add and undo -> to see best score
-    for (int i = 0; i < brd->row; i++)
-    {
-        for (int j = 0; j < brd->col; j++)
-        {
-            // the case is available
-            if (case_is_available(brd->matrix[i][j]))
-            {
-                // add move to evalaute
-                add_to_board(brd, i + 1, j + 1, (turn) ? PC : PLAYER);
-
-                // find max score
-                int score = min_max_double(brd, false, 0, turn);
-                printf("row: %d col: %d score : %d\n", i, j, score);
-                // undo move
-                add_to_board(brd, i + 1, j + 1, (char)0);
-                // find the case with max probab
-                if (score > best_score)
-                {
-                    bst_move.row = i;
-                    bst_move.col = j;
-                    best_score = score;
-                }
-            }
-        }
-    }
-    add_to_board(brd, bst_move.row + 1, bst_move.col + 1, (turn) ? PC : PLAYER);
-
-    printf("\nmove : %d move : %d\n", bst_move.row, bst_move.col);
-}
-void ai_vs_ai(board brd)
-{
-    bool win = false;
-    bool turn = true;
-    while (!win)
-    {
-
-        bool is_full = board_is_full(brd);
-        if (!is_full)
-        {
-            best_move_o(brd, !turn);
-            print_board(brd);
-            sleep(1);
-            turn = !turn;
-            if (evaluate(brd) == 1)
-            {
-                printf("pc 1 win the game !!!");
-                return;
-            }
-        }
         else
         {
             printf("the game is draw !!! \n");
