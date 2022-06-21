@@ -34,7 +34,7 @@ bool board_is_full(board brd);
 
 int mini_max(board brd, bool is_max, int depth);
 int mini_max_alpha(board brd, bool is_max, int depth, int *alpha, int *beta);
-void best_move(board brd, bool machine_starts, bool prun);
+void best_move(board brd, bool prun);
 
 void two_player(board brd);
 void player_random_AI(board brd);

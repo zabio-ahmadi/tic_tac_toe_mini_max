@@ -468,7 +468,7 @@ void make_move(board brd, bool turn, int *i, int *j)
     *j = tmp_j;
 }
 
-void best_move(board brd, bool machine_starts, bool prun)
+void best_move(board brd, bool prun)
 {
     int best_score = _MIN_INF_;
     move bst_move;
@@ -490,7 +490,7 @@ void best_move(board brd, bool machine_starts, bool prun)
                 add_to_board(brd, i + 1, j + 1, PC);
 
                 // find max score
-                int score = (prun) ? mini_max_alpha(brd, machine_starts, 0, &alpha, &beta) : mini_max(brd, !machine_starts, 0);
+                int score = (prun) ? mini_max_alpha(brd, false, 0, &alpha, &beta) : mini_max(brd, false, 0);
 
                 // undo move
                 add_to_board(brd, i + 1, j + 1, (char)0);
@@ -646,7 +646,6 @@ void player_vs_smart_ai_mini_max(board brd, bool prun)
     printInColor("blue", "who starts the game :\n");
     printInColor("white", "[1] : you\n[2]: Machine ? \n");
     int t;
-    bool machin_start = false;
     scanf("%d", &t);
 
     if (t == 1)
@@ -656,7 +655,6 @@ void player_vs_smart_ai_mini_max(board brd, bool prun)
     else
     {
         turn = true;
-        machin_start = true;
     }
 
     while (!win)
@@ -666,7 +664,7 @@ void player_vs_smart_ai_mini_max(board brd, bool prun)
         {
             if (turn)
             {
-                best_move(brd, machin_start, prun);
+                best_move(brd, prun);
                 print_board(brd);
 
                 if (evaluate(brd) == 1)
